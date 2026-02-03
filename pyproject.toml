@@ -1,0 +1,23 @@
+[project]
+name = "kobo-mcp"
+version = "0.1.0"
+description = "MCP server for KoboToolbox - deploy surveys and fetch submissions"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+kobo-mcp = "kobo_mcp:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kobo_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/kobo_mcp"]

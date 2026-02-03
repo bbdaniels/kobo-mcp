@@ -1,0 +1,5 @@
+title: Kobo MCP
+description: MCP server for KoboToolbox - deploy surveys and fetch submissions
+remote_theme: pages-themes/minimal@v0.2.0
+plugins:
+  - jekyll-remote-theme

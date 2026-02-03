@@ -21,12 +21,13 @@ An MCP (Model Context Protocol) server that enables Claude to interact with Kobo
 ## Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/bbdaniels/kobo-mcp.git
-cd kobo-mcp
+pip install kobo-mcp
+```
 
-# Install in development mode
-pip install -e .
+Or run directly with uvx (no install needed):
+
+```bash
+uvx kobo-mcp
 ```
 
 ## Configuration

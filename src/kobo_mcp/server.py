@@ -206,6 +206,7 @@ async def get_form(form_uid: str) -> str:
         "uid": data.get("uid"),
         "name": data.get("name"),
         "deployment_status": data.get("deployment_status"),
+        "deployment_links": data.get("deployment__links", {}),
         "submission_count": data.get("deployment__submission_count", 0),
         "date_created": data.get("date_created"),
         "date_modified": data.get("date_modified"),

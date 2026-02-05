@@ -1,6 +1,6 @@
 [project]
 name = "kobo-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP server for KoboToolbox - deploy surveys and fetch submissions"
 readme = "README.md"
 license = "MIT"

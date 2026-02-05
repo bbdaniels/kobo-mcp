@@ -181,12 +181,26 @@ async def deploy_form(file_path: str, form_name: str | None = None) -> str:
         )
         deploy_response.raise_for_status()
 
+        # Step 3: Get asset info including enketo URL
+        asset_response = await client.get(
+            f"{KOBO_SERVER}/api/v2/assets/{uid}/",
+            headers=get_headers(),
+            timeout=30.0,
+        )
+        asset_response.raise_for_status()
+        asset_data = asset_response.json()
+
+    # Extract enketo submission URL from deployment links
+    deployment_links = asset_data.get("deployment__links", {})
+    enketo_url = deployment_links.get("url") or deployment_links.get("offline_url")
+
     return json.dumps(
         {
             "uid": uid,
             "name": name,
             "status": "deployed",
-            "url": f"{KOBO_SERVER}/#/forms/{uid}",
+            "enketo_url": enketo_url,
+            "management_url": f"{KOBO_SERVER}/#/forms/{uid}",
         },
         indent=2,
     )
@@ -254,10 +268,21 @@ async def replace_form(form_uid: str, file_path: str) -> str:
             )
 
         # Step 3: Redeploy the form to make changes live
+        # PATCH with version_id triggers actual redeployment of new content
+        # First get the current asset version
+        version_response = await client.get(
+            f"{KOBO_SERVER}/api/v2/assets/{form_uid}/",
+            headers=get_headers(),
+            timeout=30.0,
+        )
+        version_response.raise_for_status()
+        version_data = version_response.json()
+        version_id = version_data.get("version_id")
+
         deploy_response = await client.patch(
             f"{KOBO_SERVER}/api/v2/assets/{form_uid}/deployment/",
             headers=get_headers(),
-            json={"active": True},
+            json={"active": True, "version_id": version_id},
             timeout=30.0,
         )
         deploy_response.raise_for_status()
@@ -271,13 +296,18 @@ async def replace_form(form_uid: str, file_path: str) -> str:
         asset_response.raise_for_status()
         asset = asset_response.json()
 
+    # Extract enketo submission URL from deployment links
+    deployment_links = asset.get("deployment__links", {})
+    enketo_url = deployment_links.get("url") or deployment_links.get("offline_url")
+
     return json.dumps(
         {
             "uid": form_uid,
             "name": asset.get("name"),
             "status": "redeployed",
             "submission_count": asset.get("deployment__submission_count", 0),
-            "url": f"{KOBO_SERVER}/#/forms/{form_uid}",
+            "enketo_url": enketo_url,
+            "management_url": f"{KOBO_SERVER}/#/forms/{form_uid}",
         },
         indent=2,
     )

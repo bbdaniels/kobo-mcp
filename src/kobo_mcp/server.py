@@ -217,6 +217,49 @@ async def get_form(form_uid: str) -> str:
 
 
 @mcp.tool()
+async def resolve_form(enketo_url: str) -> str:
+    """Find the form UID that corresponds to an Enketo submission URL.
+
+    Given an Enketo URL (e.g. https://ee.kobotoolbox.org/single/6F7QA1uJ),
+    searches all deployed forms to find the one whose deployment links match.
+    Returns the form UID, name, and all deployment links.
+
+    Args:
+        enketo_url: The Enketo submission URL to look up.
+
+    Returns:
+        JSON object with uid, name, and deployment_links, or an error if not found.
+    """
+    # Normalize: strip trailing slashes
+    target = enketo_url.strip().rstrip("/")
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{KOBO_SERVER}/api/v2/assets/",
+            headers=get_headers(),
+            params={"asset_type": "survey"},
+            timeout=30.0,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+    for asset in data.get("results", []):
+        links = asset.get("deployment__links", {}) or {}
+        for _key, url in links.items():
+            if isinstance(url, str) and url.rstrip("/") == target:
+                return json.dumps(
+                    {
+                        "uid": asset.get("uid"),
+                        "name": asset.get("name"),
+                        "deployment_links": links,
+                    },
+                    indent=2,
+                )
+
+    return json.dumps({"error": f"No form found matching Enketo URL: {enketo_url}"})
+
+
+@mcp.tool()
 async def export_form(form_uid: str, output_path: str) -> str:
     """Download an existing form as an XLSForm (.xlsx) file.
 

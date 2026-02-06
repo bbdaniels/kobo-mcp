@@ -385,7 +385,7 @@ async def deploy_form(file_path: str, form_name: str | None = None) -> str:
         # Step 1: Upload the XLSForm to create an asset
         with open(file_path, "rb") as f:
             files = {"file": (os.path.basename(file_path), f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
-            data = {"name": name}
+            data = {"name": name, "asset_type": "survey"}
             response = await client.post(
                 f"{KOBO_SERVER}/api/v2/assets/",
                 headers=get_headers(),

@@ -49,6 +49,7 @@ TOOLS:
   replace_form  — Replace an existing form's definition (preserves uid & submissions).
   get_submissions — Fetch submission data with pagination and filtering.
   export_data   — Export submission data as CSV or XLS.
+  set_validation_status — Mark submissions as approved, not_approved, or on_hold.
 
 WORKFLOWS (use info with topic for step-by-step):
   translate — Add translations to an existing form
@@ -543,6 +544,63 @@ async def replace_form(form_uid: str, file_path: str) -> str:
             "submission_count": asset.get("deployment__submission_count", 0),
             "enketo_url": enketo_url,
             "management_url": f"{KOBO_SERVER}/#/forms/{form_uid}",
+        },
+        indent=2,
+    )
+
+
+@mcp.tool()
+async def set_validation_status(
+    form_uid: str,
+    submission_ids: list[int],
+    status: str,
+) -> str:
+    """Set the validation status of submissions.
+
+    Use this to approve, reject, or flag submissions without deleting them.
+    Useful for marking test/garbage data so it can be filtered out of analysis.
+
+    Args:
+        form_uid: The unique identifier (uid) of the form.
+        submission_ids: List of submission _id values to update.
+        status: One of "approved", "not_approved", "on_hold".
+
+    Returns:
+        JSON object with update status.
+    """
+    status_map = {
+        "approved": "validation_status_approved",
+        "not_approved": "validation_status_not_approved",
+        "on_hold": "validation_status_on_hold",
+    }
+
+    if status not in status_map:
+        return json.dumps({"error": f"Invalid status: {status}. Use one of: {', '.join(status_map.keys())}"})
+
+    if not submission_ids:
+        return json.dumps({"error": "No submission IDs provided"})
+
+    async with httpx.AsyncClient() as client:
+        response = await client.patch(
+            f"{KOBO_SERVER}/api/v2/assets/{form_uid}/data/validation_statuses/",
+            headers={**get_headers(), "Content-Type": "application/json"},
+            json={
+                "payload": {
+                    "submission_ids": submission_ids,
+                    "validation_status.uid": status_map[status],
+                }
+            },
+            timeout=60.0,
+        )
+        response.raise_for_status()
+
+    return json.dumps(
+        {
+            "status": "updated",
+            "form_uid": form_uid,
+            "validation_status": status,
+            "updated_count": len(submission_ids),
+            "submission_ids": submission_ids,
         },
         indent=2,
     )

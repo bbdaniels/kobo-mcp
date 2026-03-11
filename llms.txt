@@ -1,0 +1,36 @@
+# kobo-mcp
+
+> An MCP server for KoboToolbox that enables Claude to deploy surveys, manage forms, and fetch submissions.
+
+## What It Does
+
+Connects Claude to KoboToolbox for end-to-end survey management: deploy XLSForm surveys, add translations, download submissions, export data, and validate responses -- all through natural language.
+
+## Install
+
+```bash
+export KOBO_API_TOKEN="your-token-here"
+claude mcp add kobotoolbox -- env KOBO_API_TOKEN=$KOBO_API_TOKEN uvx kobo-mcp
+```
+
+For the EU server, add `KOBO_SERVER=https://eu.kobotoolbox.org` to the env.
+
+## Tools
+
+- **info** - Get help and workflow guidance (translate, deploy, data export)
+- **list_forms** - List all surveys with uid, name, status, and submission count
+- **get_form** - Get a form's JSON structure including questions and choices
+- **resolve_form** - Find the form UID for an Enketo submission URL
+- **export_form** - Download an existing form as XLSForm (.xlsx) for editing
+- **get_submissions** - Fetch survey responses with optional filtering and pagination
+- **deploy_form** - Upload and deploy a new XLSForm as a live survey
+- **replace_form** - Update an existing form while preserving submissions
+- **set_validation_status** - Approve, reject, or flag submissions
+- **export_data** - Export submission data as CSV or Excel
+
+## Configuration
+
+- `KOBO_API_TOKEN` (required) - API key from KoboToolbox Account Settings > Security
+- `KOBO_SERVER` (optional) - Server URL, defaults to `https://kf.kobotoolbox.org`. Set to `https://eu.kobotoolbox.org` for the EU server.
+
+Requires Python 3.10+.
